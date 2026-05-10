@@ -80,8 +80,17 @@ public class AppService {
      * Inicia uma locação verificando se o computador está livre
      */
     public int iniciarLocacao(int clienteId, int computadorId) {
+        Cliente cliente = clienteDAO.buscarPorId(clienteId);
+        if (cliente == null) {
+            throw new IllegalArgumentException("Cliente não encontrado");
+        }
+
         Computador pc = computadorDAO.buscarPorId(computadorId);
-        if (pc == null || !"livre".equals(pc.getStatus())) {
+        if (pc == null) {
+            throw new IllegalArgumentException("Computador não encontrado");
+        }
+
+        if (!"livre".equals(pc.getStatus())) {
             throw new IllegalArgumentException("Computador não está disponível");
         }
 
