@@ -12,20 +12,17 @@ public class Main {
         // Criar as tabelas
         DatabaseConnection.criarTabelas();
         
-        // Testar conexão
-        try {
-            Connection conn = DatabaseConnection.getConnection();
-            System.out.println("Conectado ao banco!");
+        // Testar conexão usando try-with-resources
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM computadores")) {
             
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT * FROM computadores");
+            System.out.println("Conectado ao banco!");
             
             System.out.println("\n--- Computadores ---");
             while (rs.next()) {
                 System.out.println("Máquina " + rs.getInt("numero") + ": " + rs.getString("status"));
             }
-            
-            conn.close();
             
         } catch (Exception e) {
             System.out.println("Erro: " + e.getMessage());

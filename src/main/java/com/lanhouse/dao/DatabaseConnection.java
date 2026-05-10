@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.PreparedStatement;
 
 public class DatabaseConnection {
 
@@ -50,9 +51,14 @@ public class DatabaseConnection {
             stmt.execute(sqlClientes);
             stmt.execute(sqlSessoes);
             
-            // Inserir 5 computadores padrão
-            for (int i = 1; i <= 5; i++) {
-                stmt.execute("INSERT OR IGNORE INTO computadores (numero) VALUES (" + i + ")");
+            // Inserir 5 computadores padrão usando PreparedStatement e Batch
+            String sqlInsert = "INSERT OR IGNORE INTO computadores (numero) VALUES (?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlInsert)) {
+                for (int i = 1; i <= 5; i++) {
+                    pstmt.setInt(1, i);
+                    pstmt.addBatch();
+                }
+                pstmt.executeBatch();
             }
 
             System.out.println("Banco de dados criado com sucesso!");
@@ -61,4 +67,3 @@ public class DatabaseConnection {
         }
     }
 }
-
