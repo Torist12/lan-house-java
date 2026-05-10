@@ -160,21 +160,61 @@ public class AppController {
     }
 
     private void iniciarLocacao() {
-        view.exibirComputadores(service.listarComputadoresLivres());
+        Cliente cliente = selecionarCliente();
+        if (cliente == null) {
+            return;
+        }
 
-        int clienteId = view.lerInteiro("ID do cliente: ");
-        int computadorId = view.lerInteiro("ID do computador: ");
+        Computador computador = selecionarComputadorLivre();
+        if (computador == null) {
+            return;
+        }
 
         try {
-            int locacaoId = service.iniciarLocacao(clienteId, computadorId);
-            Computador pc = service.buscarComputadorId(computadorId);
+            int locacaoId = service.iniciarLocacao(cliente.getId(), computador.getId());
             view.exibirMensagem("Locação iniciada! ID: " + locacaoId);
-            if (pc != null) {
-                view.exibirMensagem(service.descricaoComputador(pc));
-            }
+            view.exibirMensagem(service.descricaoComputador(computador));
         } catch (IllegalArgumentException e) {
             view.exibirErro(e.getMessage());
         }
+    }
+
+    private Cliente selecionarCliente() {
+        var clientes = service.listarClientes();
+        if (clientes.isEmpty()) {
+            view.exibirErro("Nenhum cliente cadastrado. Cadastre um cliente antes de iniciar a locação.");
+            return null;
+        }
+
+        view.exibirClientes(clientes);
+        int clienteId = view.lerInteiro("ID do cliente: ");
+        Cliente cliente = service.buscarClienteId(clienteId);
+
+        if (cliente == null) {
+            view.exibirErro("Cliente não encontrado!");
+            return null;
+        }
+
+        return cliente;
+    }
+
+    private Computador selecionarComputadorLivre() {
+        var computadores = service.listarComputadoresLivres();
+        if (computadores.isEmpty()) {
+            view.exibirErro("Nenhum computador livre disponível no momento.");
+            return null;
+        }
+
+        view.exibirComputadores(computadores);
+        int computadorId = view.lerInteiro("ID do computador: ");
+        Computador computador = service.buscarComputadorId(computadorId);
+
+        if (computador == null || !"livre".equals(computador.getStatus())) {
+            view.exibirErro("Computador inválido ou não disponível!");
+            return null;
+        }
+
+        return computador;
     }
 
     private void finalizarLocacao() {
@@ -196,6 +236,13 @@ public class AppController {
     }
 
     private void historicoCliente() {
+        var clientes = service.listarClientes();
+        if (clientes.isEmpty()) {
+            view.exibirErro("Nenhum cliente registrado!");
+            return;
+        }
+
+        view.exibirClientes(clientes);
         int clienteId = view.lerInteiro("ID do cliente: ");
         Cliente cliente = service.buscarClienteId(clienteId);
 
