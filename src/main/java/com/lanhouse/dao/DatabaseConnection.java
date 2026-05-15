@@ -19,7 +19,9 @@ public class DatabaseConnection {
             CREATE TABLE IF NOT EXISTS computadores (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 numero INTEGER NOT NULL UNIQUE,
-                status TEXT DEFAULT 'livre'
+                status TEXT DEFAULT 'livre',
+                tier TEXT,
+                preco_hora REAL
             )
         """;
         
@@ -32,8 +34,8 @@ public class DatabaseConnection {
             )
         """;
         
-        String sqlSessoes = """
-            CREATE TABLE IF NOT EXISTS sessoes (
+        String sqlLocacoes = """
+            CREATE TABLE IF NOT EXISTS locacoes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 cliente_id INTEGER NOT NULL,
                 computador_id INTEGER NOT NULL,
@@ -49,15 +51,36 @@ public class DatabaseConnection {
 
             stmt.execute(sqlComputadores);
             stmt.execute(sqlClientes);
-            stmt.execute(sqlSessoes);
+            stmt.execute(sqlLocacoes);
             
-            // Inserir 5 computadores padrão usando PreparedStatement e Batch
-            String sqlInsert = "INSERT OR IGNORE INTO computadores (numero) VALUES (?)";
+            // Inserir 5 computadores padrão com tier e preço
+            String sqlInsert = "INSERT OR IGNORE INTO computadores (numero, tier, preco_hora) VALUES (?, ?, ?)";
             try (PreparedStatement pstmt = conn.prepareStatement(sqlInsert)) {
-                for (int i = 1; i <= 5; i++) {
-                    pstmt.setInt(1, i);
-                    pstmt.addBatch();
-                }
+                pstmt.setInt(1, 1);
+                pstmt.setString(2, "BASICO");
+                pstmt.setDouble(3, 10.00);
+                pstmt.addBatch();
+                
+                pstmt.setInt(1, 2);
+                pstmt.setString(2, "BASICO");
+                pstmt.setDouble(3, 10.00);
+                pstmt.addBatch();
+                
+                pstmt.setInt(1, 3);
+                pstmt.setString(2, "INTERMEDIARIO");
+                pstmt.setDouble(3, 15.00);
+                pstmt.addBatch();
+                
+                pstmt.setInt(1, 4);
+                pstmt.setString(2, "INTERMEDIARIO");
+                pstmt.setDouble(3, 15.00);
+                pstmt.addBatch();
+                
+                pstmt.setInt(1, 5);
+                pstmt.setString(2, "GAMER");
+                pstmt.setDouble(3, 25.00);
+                pstmt.addBatch();
+                
                 pstmt.executeBatch();
             }
 

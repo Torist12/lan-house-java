@@ -1,6 +1,6 @@
 package com.lanhouse.service;
 
-import com.lanhouse.dao.memory.*;
+import com.lanhouse.dao.*;
 import com.lanhouse.model.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -10,13 +10,13 @@ import java.util.List;
  * Responsável por CRUD de entidades e operações de negócio.
  */
 public class AppService {
-    private final ComputadorDAOMemoria computadorDAO;
-    private final ClienteDAOMemoria clienteDAO;
-    private final LocacaoDAOMemoria locacaoDAO;
+    private final ComputadorDAO computadorDAO;
+    private final ClienteDAO clienteDAO;
+    private final LocacaoDAO locacaoDAO;
     private final CalculoValorService calculoService;
 
-    public AppService(ComputadorDAOMemoria computadorDAO, ClienteDAOMemoria clienteDAO, 
-                      LocacaoDAOMemoria locacaoDAO, CalculoValorService calculoService) {
+    public AppService(ComputadorDAO computadorDAO, ClienteDAO clienteDAO, 
+                      LocacaoDAO locacaoDAO, CalculoValorService calculoService) {
         this.computadorDAO = computadorDAO;
         this.clienteDAO = clienteDAO;
         this.locacaoDAO = locacaoDAO;

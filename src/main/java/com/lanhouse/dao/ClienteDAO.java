@@ -15,14 +15,16 @@ public class ClienteDAO {
 
     public int salvar(Cliente cliente) {
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement pstmt = conn.prepareStatement(INSERT)) {
             
             pstmt.setString(1, cliente.getNome());
             pstmt.setString(2, cliente.getDocumento());
             pstmt.setString(3, cliente.getTelefone());
             
             if (pstmt.executeUpdate() > 0) {
-                try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                // Recuperar o último ID inserido
+                try (Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
                     if (rs.next()) {
                         return rs.getInt(1);
                     }

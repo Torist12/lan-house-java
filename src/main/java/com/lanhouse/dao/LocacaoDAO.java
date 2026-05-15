@@ -16,7 +16,7 @@ public class LocacaoDAO {
 
     public int iniciarLocacao(Locacao locacao) {
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement pstmt = conn.prepareStatement(INSERT)) {
             
             pstmt.setInt(1, locacao.getClienteId());
             pstmt.setInt(2, locacao.getComputadorId());
@@ -24,7 +24,9 @@ public class LocacaoDAO {
             pstmt.setString(4, locacao.getStatus());
             
             if (pstmt.executeUpdate() > 0) {
-                try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                // Recuperar o último ID inserido
+                try (Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
                     if (rs.next()) {
                         return rs.getInt(1);
                     }
