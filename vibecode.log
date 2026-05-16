@@ -1,0 +1,56 @@
+================================================================================
+  VIBECODE LOG - RELATÓRIO COMPLETO DE EVOLUÇÃO DO PROJETO
+  Data: 16/05/2026
+  Assunto: Implementação de Enums, Regras de Negócio e Infraestrutura de Testes
+================================================================================
+
+Este log documenta a transformação do sistema de Lan House em uma aplicação
+Java robusta, seguindo padrões de engenharia de software de classe mundial.
+
+RESUMO DAS ATIVIDADES REALIZADAS:
+
+1. ARQUITETURA E DESACOPLAMENTO (Repository Pattern):
+   - Introdução de interfaces (IClienteRepositorio, IComputadorRepositorio,
+     ILocacaoRepositorio) para isolar a lógica de negócio do armazenamento.
+   - AppService agora recebe as interfaces via construtor (Injeção de Dependência),
+     facilitando a alternância entre SQLite e persistência em memória.
+
+2. IMPLEMENTAÇÃO DE ENUMS (Segurança de Tipos):
+   - Criação de StatusComputador (LIVRE, OCUPADO), TierComputador (BASICO, 
+     INTERMEDIARIO, GAMER) e StatusLocacao (ATIVA, FINALIZADA).
+   - Remoção de todas as "strings mágicas", prevenindo bugs de digitação e
+     preparando a base para a interface JavaFX.
+
+3. GESTÃO DE DADOS E PERSISTÊNCIA:
+   - Ativação de Foreign Keys no SQLite para garantir integridade referencial.
+   - Centralização da conexão no DatabaseConnection e automação do schema.
+   - Refatoração dos DAOs para lançar RuntimeExceptions, eliminando silenciamento
+     de erros técnicos e melhorando a rastreabilidade.
+
+4. REGRAS DE NEGÓCIO E VALIDAÇÕES:
+   - Bloqueio de locações duplicadas: Um cliente não pode ter duas sessões ativas.
+   - Proteção de integridade: Clientes com locações ativas ou máquinas ocupadas
+     não podem ser deletados.
+   - Cálculo Dinâmico de Valor: Implementado em CalculoValorService, aplicando
+     taxas multiplicadoras baseadas no Tier da máquina.
+
+5. CRUD COMPLETO DE COMPUTADORES:
+   - Implementada a gestão de inventário de máquinas no AppService e menus
+     correspondentes no AppController (Cadastrar, Atualizar Preço, Remover).
+
+6. INFRAESTRUTURA DE TESTES:
+   - Configuração do JUnit 5 no pom.xml.
+   - Criação de testes unitários para CalculoValorService e AppService.
+   - Organização dos testes no diretório padrão Maven (src/test/java).
+
+7. MELHORIAS NA INTERFACE (CLI):
+   - Implementado o método encerrar() na IView para fechamento seguro do Scanner.
+   - Tratamento de exceções no AppController para exibir erros amigáveis.
+
+PRÓXIMOS PASSOS SUGERIDOS:
+- Implementação da interface gráfica em JavaFX integrando com AppService.
+- Filtros de data no relatório de faturamento.
+
+================================================================================
+LOG GERADO POR GEMINI CODE ASSIST - PRONTO PARA COMMIT
+================================================================================

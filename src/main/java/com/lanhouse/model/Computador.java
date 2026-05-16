@@ -3,11 +3,11 @@ package com.lanhouse.model;
 public class Computador {
     private int id;
     private int numero;
-    private String status;
-    private String tier;
+    private StatusComputador status;
+    private TierComputador tier;
     private double precoHora;
 
-    public Computador(int id, int numero, String status, String tier, double precoHora) {
+    public Computador(int id, int numero, StatusComputador status, TierComputador tier, double precoHora) {
         this.id = id;
         this.numero = numero;
         this.status = status;
@@ -15,7 +15,7 @@ public class Computador {
         this.precoHora = precoHora;
     }
 
-    public Computador(int numero, String status, String tier, double precoHora) {
+    public Computador(int numero, StatusComputador status, TierComputador tier, double precoHora) {
         this.numero = numero;
         this.status = status;
         this.tier = tier;
@@ -31,11 +31,11 @@ public class Computador {
         return numero;
     }
 
-    public String getStatus() {
+    public StatusComputador getStatus() {
         return status;
     }
 
-    public String getTier() {
+    public TierComputador getTier() {
         return tier;
     }
 
@@ -44,7 +44,7 @@ public class Computador {
     }
 
     // Setters
-    public void setStatus(String status) {
+    public void setStatus(StatusComputador status) {
         this.status = status;
     }
 
@@ -57,8 +57,8 @@ public class Computador {
         return "Computador{" +
                 "id=" + id +
                 ", numero=" + numero +
-                ", status='" + status + '\'' +
-                ", tier='" + tier + '\'' +
+                ", status=" + status +
+                ", tier=" + tier +
                 ", precoHora=" + precoHora +
                 '}';
     }

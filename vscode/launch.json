@@ -3,10 +3,20 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Executar Lan House",
+            "name": "Executar Lan House (Main)",
             "request": "launch",
-            "mainClass": "Main",
+            "mainClass": "com.lanhouse.Main",
             "projectName": "lanhousesystem",
+            "args": "",
+            "console": "integratedTerminal"
+        },
+        {
+            "type": "java",
+            "name": "Executar Lan House (Maven exec)",
+            "request": "launch",
+            "mainClass": "com.lanhouse.Main",
+            "projectName": "lanhousesystem",
+            "preLaunchTask": "Maven: exec:java",
             "args": "",
             "console": "integratedTerminal"
         }

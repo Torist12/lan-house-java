@@ -1,9 +1,6 @@
 # Compiled class file
 *.class
 
-# Log file
-*.log
-
 # BlueJ files
 *.ctxt
 
@@ -25,7 +22,6 @@ replay_pid*
 
 #build directory created by mvn
 target/
-
 
 #db file
 lanhouse.db

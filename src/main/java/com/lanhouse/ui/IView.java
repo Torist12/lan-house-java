@@ -56,4 +56,7 @@ public interface IView {
     // ===== CONFIRMAÇÕES =====
     
     boolean confirmar(String mensagem);
+
+    // ===== CICLO DE VIDA =====
+    void encerrar();
 }

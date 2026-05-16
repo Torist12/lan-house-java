@@ -1,15 +1,17 @@
-package com.lanhouse.dao;
+package com.lanhouse.repository.sqlite;
 
 import com.lanhouse.model.Locacao;
+import com.lanhouse.model.StatusLocacao;
+import com.lanhouse.repository.ILocacaoRepositorio;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LocacaoDAO {
+public class LocacaoDAO implements ILocacaoRepositorio {
     private static final String INSERT = "INSERT INTO locacoes (cliente_id, computador_id, inicio, status) VALUES (?, ?, ?, ?)";
     private static final String SELECT_ALL = "SELECT id, cliente_id, computador_id, inicio, fim, valor_total, status FROM locacoes";
-    private static final String SELECT_ATIVAS = SELECT_ALL + " WHERE status = 'ativa'";
+    private static final String SELECT_ATIVAS = SELECT_ALL + " WHERE status = 'ATIVA'";
     private static final String SELECT_BY_CLIENTE = SELECT_ALL + " WHERE cliente_id = ?";
     private static final String UPDATE = "UPDATE locacoes SET fim = ?, valor_total = ?, status = ? WHERE id = ?";
     private static final String SELECT_BY_ID = SELECT_ALL + " WHERE id = ?";
@@ -21,10 +23,9 @@ public class LocacaoDAO {
             pstmt.setInt(1, locacao.getClienteId());
             pstmt.setInt(2, locacao.getComputadorId());
             pstmt.setTimestamp(3, Timestamp.valueOf(locacao.getInicio()));
-            pstmt.setString(4, locacao.getStatus());
+            pstmt.setString(4, locacao.getStatus().name());
             
             if (pstmt.executeUpdate() > 0) {
-                // Recuperar o último ID inserido
                 try (Statement stmt = conn.createStatement();
                      ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
                     if (rs.next()) {
@@ -33,7 +34,7 @@ public class LocacaoDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao iniciar locação: " + e.getMessage());
+            throw new RuntimeException("Erro ao iniciar locação no banco de dados: " + e.getMessage(), e);
         }
         return -1;
     }
@@ -44,13 +45,12 @@ public class LocacaoDAO {
             
             pstmt.setTimestamp(1, Timestamp.valueOf(fim));
             pstmt.setDouble(2, valorTotal);
-            pstmt.setString(3, "finalizada");
+            pstmt.setString(3, StatusLocacao.FINALIZADA.name());
             pstmt.setInt(4, id);
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("Erro ao finalizar locação: " + e.getMessage());
+            throw new RuntimeException("Erro ao finalizar locação no banco de dados: " + e.getMessage(), e);
         }
-        return false;
     }
 
     public List<Locacao> listarAtivas() {
@@ -63,7 +63,7 @@ public class LocacaoDAO {
                 locacoes.add(mapearResultSet(rs));
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao listar locações ativas: " + e.getMessage());
+            throw new RuntimeException("Erro ao buscar locações ativas: " + e.getMessage(), e);
         }
         return locacoes;
     }
@@ -80,7 +80,7 @@ public class LocacaoDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao listar locações do cliente: " + e.getMessage());
+            throw new RuntimeException("Erro ao buscar histórico do cliente: " + e.getMessage(), e);
         }
         return locacoes;
     }
@@ -95,7 +95,7 @@ public class LocacaoDAO {
                 locacoes.add(mapearResultSet(rs));
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao listar locações: " + e.getMessage());
+            throw new RuntimeException("Erro no banco de dados SQLite ao carregar o relatório de locações: " + e.getMessage(), e);
         }
         return locacoes;
     }
@@ -111,14 +111,16 @@ public class LocacaoDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao buscar locação: " + e.getMessage());
+            throw new RuntimeException("Erro ao buscar locação por ID: " + e.getMessage(), e);
         }
         return null;
     }
 
     private Locacao mapearResultSet(ResultSet rs) throws SQLException {
-        LocalDateTime fim = rs.getTimestamp("fim") != null ? rs.getTimestamp("fim").toLocalDateTime() : null;
-        
+        LocalDateTime fim = rs.getTimestamp("fim") != null
+                ? rs.getTimestamp("fim").toLocalDateTime()
+                : null;
+
         return new Locacao(
             rs.getInt("id"),
             rs.getInt("cliente_id"),
@@ -126,7 +128,7 @@ public class LocacaoDAO {
             rs.getTimestamp("inicio").toLocalDateTime(),
             fim,
             rs.getDouble("valor_total"),
-            rs.getString("status")
+            StatusLocacao.valueOf(rs.getString("status"))
         );
     }
 }

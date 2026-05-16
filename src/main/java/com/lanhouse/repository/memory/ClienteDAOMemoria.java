@@ -1,9 +1,10 @@
-package com.lanhouse.dao.memory;
+package com.lanhouse.repository.memory;
 
 import com.lanhouse.model.Cliente;
+import com.lanhouse.repository.IClienteRepositorio;
 import java.util.*;
 
-public class ClienteDAOMemoria {
+public class ClienteDAOMemoria implements IClienteRepositorio {
     private Map<Integer, Cliente> clientes = new HashMap<>();
     private int idCounter = 1;
 

@@ -2,6 +2,7 @@ package com.lanhouse.service;
 
 import com.lanhouse.model.Locacao;
 import com.lanhouse.model.Computador;
+import com.lanhouse.model.TierComputador;
 
 public class CalculoValorService {
     
@@ -34,7 +35,7 @@ public class CalculoValorService {
      * @param tier Tier do computador
      * @return Valor a pagar
      */
-    public double calcularValorEstimado(long tempoMinutos, double precoHora, String tier) {
+    public double calcularValorEstimado(long tempoMinutos, double precoHora, TierComputador tier) {
         double tempoHoras = tempoMinutos / 60.0;
         double taxa = getTaxaTier(tier);
         
@@ -47,12 +48,11 @@ public class CalculoValorService {
      * @param tier BASICO, INTERMEDIARIO ou GAMER
      * @return Taxa multiplicadora (1.0, 1.2 ou 1.5)
      */
-    private double getTaxaTier(String tier) {
+    private double getTaxaTier(TierComputador tier) {
         return switch (tier) {
-            case "BASICO" -> 1.0;
-            case "INTERMEDIARIO" -> 1.2;
-            case "GAMER" -> 1.5;
-            default -> 1.0;
+            case BASICO -> 1.0;
+            case INTERMEDIARIO -> 1.2;
+            case GAMER -> 1.5;
         };
     }
     

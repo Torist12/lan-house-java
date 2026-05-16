@@ -218,4 +218,9 @@ public class CliView implements IView {
         String resposta = scanner.nextLine().trim().toUpperCase();
         return resposta.equals("S") || resposta.equals("SIM");
     }
+
+    @Override
+    public void encerrar() {
+        scanner.close();
+    }
 }

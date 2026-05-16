@@ -1,11 +1,12 @@
-package com.lanhouse.dao;
+package com.lanhouse.repository.sqlite;
 
 import com.lanhouse.model.Cliente;
+import com.lanhouse.repository.IClienteRepositorio;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClienteDAO {
+public class ClienteDAO implements IClienteRepositorio {
     private static final String INSERT = "INSERT INTO clientes (nome, documento, telefone) VALUES (?, ?, ?)";
     private static final String SELECT_ALL = "SELECT id, nome, documento, telefone FROM clientes";
     private static final String SELECT_BY_ID = SELECT_ALL + " WHERE id = ?";
@@ -22,16 +23,10 @@ public class ClienteDAO {
             pstmt.setString(3, cliente.getTelefone());
             
             if (pstmt.executeUpdate() > 0) {
-                // Recuperar o último ID inserido
-                try (Statement stmt = conn.createStatement();
-                     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
-                    if (rs.next()) {
-                        return rs.getInt(1);
-                    }
-                }
+                return getLastInsertId(conn);
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao salvar cliente: " + e.getMessage());
+            throw new RuntimeException("Erro ao salvar cliente no banco: " + e.getMessage(), e);
         }
         return -1;
     }
@@ -46,7 +41,7 @@ public class ClienteDAO {
                 clientes.add(mapearResultSet(rs));
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao listar clientes: " + e.getMessage());
+            throw new RuntimeException("Erro ao listar clientes: " + e.getMessage(), e);
         }
         return clientes;
     }
@@ -62,7 +57,7 @@ public class ClienteDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao buscar cliente: " + e.getMessage());
+            throw new RuntimeException("Erro ao buscar cliente por ID: " + e.getMessage(), e);
         }
         return null;
     }
@@ -78,7 +73,7 @@ public class ClienteDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao buscar cliente: " + e.getMessage());
+            throw new RuntimeException("Erro ao buscar cliente por documento: " + e.getMessage(), e);
         }
         return null;
     }
@@ -92,9 +87,8 @@ public class ClienteDAO {
             pstmt.setInt(3, cliente.getId());
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("Erro ao atualizar cliente: " + e.getMessage());
+            throw new RuntimeException("Erro ao atualizar cliente: " + e.getMessage(), e);
         }
-        return false;
     }
 
     public boolean deletar(int id) {
@@ -104,9 +98,18 @@ public class ClienteDAO {
             pstmt.setInt(1, id);
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("Erro ao deletar cliente: " + e.getMessage());
+            throw new RuntimeException("Erro ao deletar cliente do banco: " + e.getMessage(), e);
         }
-        return false;
+    }
+
+    private int getLastInsertId(Connection conn) throws SQLException {
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return -1;
     }
 
     private Cliente mapearResultSet(ResultSet rs) throws SQLException {

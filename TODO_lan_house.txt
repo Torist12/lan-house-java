@@ -1,0 +1,213 @@
+================================================================================
+  TODO — lan-house-java
+  Base: commit 8c81665 (Merge branch 'dev')
+  Gerado em: 16/05/2026
+================================================================================
+  Legenda de prioridade:  [!] crítico / bloqueia outros
+                          [~] importante / recomendado
+                          [-] melhoria / opcional
+================================================================================
+
+
+──────────────────────────────────────────────────────────────────────────────
+  BLOCO 1 — INTRODUÇÃO DA INTERFACE REPOSITÓRIO
+  (refactor central; desbloqueia tudo abaixo)
+──────────────────────────────────────────────────────────────────────────────
+
+  [!] 1.1  Criar interface IClienteRepositorio
+           Pacote sugerido: com.lanhouse.repository
+           Métodos: salvar(), listarTodos(), buscarPorId(),
+                    buscarPorDocumento(), atualizar(), deletar()
+
+  [!] 1.2  Criar interface IComputadorRepositorio
+           Métodos: listarTodos(), buscarPorId(), buscarPorNumero(),
+                    listarLivres(), atualizarStatus()
+
+  [!] 1.3  Criar interface ILocacaoRepositorio
+           Métodos: iniciarLocacao(), finalizarLocacao(), listarAtivas(),
+                    listarPorCliente(), listarTodas(), buscarPorId()
+
+  [!] 1.4  Adicionar "implements IClienteRepositorio" em ClienteDAO
+           Sem alterar nenhum método — apenas declaração.
+
+  [!] 1.5  Adicionar "implements IComputadorRepositorio" em ComputadorDAO
+           Sem alterar nenhum método.
+
+  [!] 1.6  Adicionar "implements ILocacaoRepositorio" em LocacaoDAO
+           Sem alterar nenhum método.
+
+  [!] 1.7  Adicionar "implements IClienteRepositorio" em ClienteDAOMemoria
+           Sem alterar nenhum método — já tem os métodos certos.
+
+  [!] 1.8  Adicionar "implements IComputadorRepositorio" em ComputadorDAOMemoria
+           Sem alterar nenhum método.
+
+  [!] 1.9  Adicionar "implements ILocacaoRepositorio" em LocacaoDAOMemoria
+           Sem alterar nenhum método.
+
+  [!] 1.10 Atualizar construtor de AppService para receber as interfaces:
+           AppService(IComputadorRepositorio, IClienteRepositorio,
+                      ILocacaoRepositorio, CalculoValorService)
+           O corpo do método não muda — só a assinatura.
+
+  [!] 1.11 Atualizar Main para passar as implementações concretas
+           (continua passando ClienteDAO etc., mas agora via interface)
+
+
+──────────────────────────────────────────────────────────────────────────────
+  BLOCO 2 — LIMPEZA DO MÓDULO DAO
+  (após bloco 1 concluído)
+──────────────────────────────────────────────────────────────────────────────
+
+  [~] 2.1  Mover ClienteDAO, ComputadorDAO, LocacaoDAO para
+           com.lanhouse.repository.sqlite
+           (separa implementação de contrato)
+
+  [~] 2.2  Mover ClienteDAOMemoria, ComputadorDAOMemoria, LocacaoDAOMemoria
+           para com.lanhouse.repository.memory
+
+  [~] 2.3  Mover DatabaseConnection para com.lanhouse.repository.sqlite
+           (é detalhe de implementação SQLite, não do pacote raiz dao)
+
+  [-]  2.4  Renomear pacote dao/ para repository/ em todo o projeto
+            (nomenclatura mais alinhada com o padrão que será adotado)
+
+  [~] 2.5  Isolar "SELECT last_insert_rowid()" em um método privado utilitário
+           dentro de cada DAO SQLite que o usa (ClienteDAO, LocacaoDAO)
+           Reduz duplicação e facilita troca de dialeto SQL no futuro.
+
+
+──────────────────────────────────────────────────────────────────────────────
+  BLOCO 3 — DATABASECONNECTION E GESTÃO DE SCHEMA
+  (independente do bloco 1, pode ser feito em paralelo)
+──────────────────────────────────────────────────────────────────────────────
+
+  [~] 3.1  Separar criarTabelas() de DatabaseConnection para uma classe
+           própria (ex: SchemaManager ou DatabaseMigrator)
+           DatabaseConnection deve fazer só uma coisa: fornecer Connection.
+
+  [~] 3.2  Remover chamada a DatabaseConnection.criarTabelas() de Main
+           Inicialização de schema não é responsabilidade do ponto de entrada.
+           Mover para SchemaManager chamado internamente pela impl SQLite
+           do repositório, ou em um método de bootstrap separado.
+
+  [-]  3.3  Introduzir um pool de conexões mínimo (ex: reuso via instância
+            singleton de Connection para SQLite single-file)
+            Hoje cada método DAO abre e fecha uma Connection nova.
+
+  [-]  3.4  Adicionar FOREIGN KEY REFERENCES explícitas no DDL de locacoes
+            Hoje a integridade referencial entre locacoes → clientes e
+            locacoes → computadores não é imposta pelo banco.
+            Adicionar: FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+                       FOREIGN KEY (computador_id) REFERENCES computadores(id)
+            E habilitar: PRAGMA foreign_keys = ON
+
+
+──────────────────────────────────────────────────────────────────────────────
+  BLOCO 4 — MODELO DE DOMÍNIO (RICH MODEL)
+──────────────────────────────────────────────────────────────────────────────
+
+  [-]  4.1  Adicionar validação de documento em Cliente
+            Ex: validarDocumento() verificando formato CPF/CNPJ básico.
+            Lança IllegalArgumentException no construtor se inválido.
+
+  [-]  4.2  Transformar status de Computador em enum
+            enum StatusComputador { LIVRE, OCUPADO }
+            Elimina strings mágicas "livre"/"ocupado" espalhadas em
+            AppService, ComputadorDAO e LocacaoDAOMemoria.
+
+  [-]  4.3  Transformar tier de Computador em enum
+            enum TierComputador { BASICO, INTERMEDIARIO, GAMER }
+            Elimina strings mágicas em CalculoValorService e nos DAOs.
+            O switch em getTaxaTier() vira exaustivo e sem default necessário.
+
+  [-]  4.4  Transformar status de Locacao em enum
+            enum StatusLocacao { ATIVA, FINALIZADA }
+            Elimina strings mágicas "ativa"/"finalizada".
+
+  [-]  4.5  Mover getTempoMinutos() e getTempoHoras() de Locacao para cálculo
+            dentro de CalculoValorService, ou manter em Locacao mas garantir
+            que só sejam chamados após fim != null (adicionar guard clause).
+
+
+──────────────────────────────────────────────────────────────────────────────
+  BLOCO 5 — QUALIDADE E ROBUSTEZ
+──────────────────────────────────────────────────────────────────────────────
+
+  [~] 5.1  Adicionar try-with-resources no Main (ou remover Connection de Main)
+           Hoje Main não fecha recursos JDBC se ocorrer exceção antes do
+           controller.executar() retornar.
+
+  [~] 5.2  Substituir System.err.println nos DAOs por uma estratégia de erro
+           consistente: ou relançar como RuntimeException, ou retornar
+           Optional<T> em vez de null. Retornar null silenciosamente mascara
+           falhas de banco.
+
+  [-]  5.3  Fechar Scanner em CliView ao encerrar aplicação
+            Hoje o Scanner de System.in não é fechado. Adicionar close() ou
+            usar try-with-resources no loop principal de AppController.
+
+  [-]  5.4  Tratar NumberFormatException em lerOpcaoMenu() de forma que não
+            retorne -1 sem informar o usuário. Hoje retorna -1 e o switch
+            cai no default exibindo "Opção inválida!" — aceitável, mas poderia
+            fazer loop pedindo nova entrada.
+
+
+──────────────────────────────────────────────────────────────────────────────
+  BLOCO 6 — TESTES
+  (só se torna viável após bloco 1 — repositórios via interface)
+──────────────────────────────────────────────────────────────────────────────
+
+  [~] 6.1  Escrever testes unitários para CalculoValorService
+           Não depende de nenhuma interface, já é testável agora.
+           Cobrir: BASICO, INTERMEDIARIO, GAMER, tempo zero, tempo fracionado.
+
+  [~] 6.2  Escrever testes unitários para AppService usando os DAOMemoria
+           Após bloco 1: AppService(IClienteRepositorio...) pode receber
+           ClienteDAOMemoria sem tocar banco. Testar fluxo completo de
+           iniciarLocacao() e finalizarLocacao() sem SQLite.
+
+  [-]  6.3  Escrever testes de integração para os DAOs SQLite
+           Usando banco de dados temporário em memória SQLite
+           (jdbc:sqlite::memory:) para não sujar o banco de desenvolvimento.
+
+  [-]  6.4  Criar uma implementação de IView para testes (FakeView / StubView)
+           Permite testar AppController sem depender de Scanner ou console.
+
+
+──────────────────────────────────────────────────────────────────────────────
+  BLOCO 7 — FUNCIONALIDADES FALTANTES NO DOMÍNIO
+──────────────────────────────────────────────────────────────────────────────
+
+  [-]  7.1  CRUD de computadores via controller/service
+            Hoje computadores só são criados pelo bootstrap do banco.
+            Adicionar: cadastrarComputador(), removerComputador(),
+            alterarTier(), alterarPreco() — com métodos correspondentes
+            nos repositórios e menus na IView.
+
+  [-]  7.2  Relatório de faturamento por período
+            Listar locações finalizadas em um intervalo de datas e somar
+            valor_total. Requer filtro por data em ILocacaoRepositorio.
+
+  [-]  7.3  Validação de locação duplicada
+            Impedir que o mesmo cliente abra duas locações ativas ao mesmo
+            tempo. AppService.iniciarLocacao() deve verificar se há locação
+            ativa para o clienteId antes de criar uma nova.
+
+  [-]  7.4  Exibir tempo decorrido em locações ativas
+            listarLocacoesAtivas() poderia exibir há quanto tempo cada
+            locação está aberta (LocalDateTime.now() - locacao.getInicio()).
+
+
+================================================================================
+
+  ORDEM DE EXECUÇÃO SUGERIDA:
+
+  Sprint 1 (desbloqueador): Bloco 1 completo → Bloco 2.1–2.3
+  Sprint 2 (qualidade):     Bloco 3 + Bloco 5 + Bloco 4 (enums primeiro)
+  Sprint 3 (testes):        Bloco 6 (de dentro para fora: unitário → integração)
+  Sprint 4 (produto):       Bloco 7 (funcionalidades de negócio)
+
+================================================================================
+  FIM DO TODO
+================================================================================

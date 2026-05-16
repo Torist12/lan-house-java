@@ -10,9 +10,9 @@ public class Locacao {
     private LocalDateTime inicio;
     private LocalDateTime fim;
     private double valorTotal;
-    private String status;
+    private StatusLocacao status;
 
-    public Locacao(int id, int clienteId, int computadorId, LocalDateTime inicio, LocalDateTime fim, double valorTotal, String status) {
+    public Locacao(int id, int clienteId, int computadorId, LocalDateTime inicio, LocalDateTime fim, double valorTotal, StatusLocacao status) {
         this.id = id;
         this.clienteId = clienteId;
         this.computadorId = computadorId;
@@ -26,7 +26,7 @@ public class Locacao {
         this.clienteId = clienteId;
         this.computadorId = computadorId;
         this.inicio = inicio;
-        this.status = "ativa";
+        this.status = StatusLocacao.ATIVA;
     }
 
     // Getters
@@ -54,7 +54,7 @@ public class Locacao {
         return valorTotal;
     }
 
-    public String getStatus() {
+    public StatusLocacao getStatus() {
         return status;
     }
 
@@ -67,7 +67,7 @@ public class Locacao {
         this.valorTotal = valorTotal;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(StatusLocacao status) {
         this.status = status;
     }
 
@@ -90,7 +90,7 @@ public class Locacao {
                 ", inicio=" + inicio +
                 ", fim=" + fim +
                 ", valorTotal=" + valorTotal +
-                ", status='" + status + '\'' +
+                ", status=" + status +
                 '}';
     }
 }
