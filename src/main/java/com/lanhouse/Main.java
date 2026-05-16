@@ -1,36 +1,30 @@
 package com.lanhouse;
 
+import com.lanhouse.controller.AppController;
+import com.lanhouse.dao.ClienteDAO;
+import com.lanhouse.dao.ComputadorDAO;
 import com.lanhouse.dao.DatabaseConnection;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import com.lanhouse.dao.LocacaoDAO;
+import com.lanhouse.service.AppService;
+import com.lanhouse.service.CalculoValorService;
+import com.lanhouse.ui.CliView;
 
 public class Main {
     public static void main(String[] args) {
         System.out.println("=== SISTEMA LAN HOUSE ===\n");
-        
-        // Criar as tabelas
+
+        // Inicializar banco de dados
         DatabaseConnection.criarTabelas();
-        
-        // Testar conexão
-        try {
-            Connection conn = DatabaseConnection.getConnection();
-            System.out.println("Conectado ao banco!");
-            
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT * FROM computadores");
-            
-            System.out.println("\n--- Computadores ---");
-            while (rs.next()) {
-                System.out.println("Máquina " + rs.getInt("numero") + ": " + rs.getString("status"));
-            }
-            
-            conn.close();
-            
-        } catch (Exception e) {
-            System.out.println("Erro: " + e.getMessage());
-        }
-        
-        System.out.println("\nSistema rodando!");
+
+        var computadorDAO = new ComputadorDAO();
+        var clienteDAO = new ClienteDAO();
+        var locacaoDAO = new LocacaoDAO();
+        var calculoService = new CalculoValorService();
+
+        var service = new AppService(computadorDAO, clienteDAO, locacaoDAO, calculoService);
+        var view = new CliView();
+        var controller = new AppController(service, view);
+
+        controller.executar();
     }
 }
