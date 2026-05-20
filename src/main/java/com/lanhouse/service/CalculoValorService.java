@@ -3,15 +3,23 @@ package com.lanhouse.service;
 import com.lanhouse.model.Locacao;
 import com.lanhouse.model.Computador;
 import com.lanhouse.model.TierComputador;
+/**
+ * Service responsible for calculating rental values based on computer tier and duration.
+ */
 
 public class CalculoValorService {
     
     /**
-     * Calcula o valor total de uma locação baseado no tempo e tier do computador
-     * 
-     * @param locacao A locação finalizada com tempo registrado
-     * @param computador O computador usado na locação
-     * @return Valor total a pagar
+     * Default constructor for CalculoValorService.
+     */
+    public CalculoValorService() {
+    }
+    /**
+     * Calculates the total value of a rental based on the time and computer tier.
+     *
+     * @param locacao The finalized rental with recorded time.
+     * @param computador The computer used in the rental.
+     * @return Total value to pay
      */
     public double calcularValor(Locacao locacao, Computador computador) {
         if (locacao.getFim() == null) {
@@ -28,12 +36,12 @@ public class CalculoValorService {
     }
     
     /**
-     * Calcula o tempo estimado de uma sessão e retorna o valor a pagar
-     * 
-     * @param tempoMinutos Tempo total da sessão em minutos
-     * @param precoHora Preço por hora do computador
-     * @param tier Tier do computador
-     * @return Valor a pagar
+     * Calculates the estimated value of a session.
+     *
+     * @param tempoMinutos Total session time in minutes.
+     * @param precoHora Hourly price of the computer.
+     * @param tier Computer tier.
+     * @return Value to pay.
      */
     public double calcularValorEstimado(long tempoMinutos, double precoHora, TierComputador tier) {
         double tempoHoras = tempoMinutos / 60.0;
@@ -43,10 +51,10 @@ public class CalculoValorService {
     }
     
     /**
-     * Retorna a taxa multiplicadora baseada no tier do computador
-     * 
-     * @param tier BASICO, INTERMEDIARIO ou GAMER
-     * @return Taxa multiplicadora (1.0, 1.2 ou 1.5)
+     * Returns the multiplier rate based on the computer's tier.
+     *
+     * @param tier BASIC, INTERMEDIATE, or GAMER.
+     * @return Multiplier rate (1.0, 1.2, or 1.5).
      */
     private double getTaxaTier(TierComputador tier) {
         return switch (tier) {
@@ -57,7 +65,10 @@ public class CalculoValorService {
     }
     
     /**
-     * Retorna uma descrição do preço para o usuário
+     * Returns a price description for the user.
+     *
+     * @param computador The computer for which to generate the description.
+     * @return A formatted string with number, tier, and price.
      */
     public String descricaoPreco(Computador computador) {
         return String.format("Computador %d (%s): R$ %.2f/hora",

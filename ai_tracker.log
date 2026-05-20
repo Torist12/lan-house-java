@@ -1,0 +1,45 @@
+================================================================================
+  AI TRACKER LOG - PROJECT EVOLUTION RECORD
+================================================================================
+
+This log documents the transformation of the Lan House system into a robust Java
+application, following world-class software engineering standards.
+
+================================================================================
+  UPDATE: 2026-05-16
+  Subject: Initial Architectural Design and Core Business Logic Implementation
+================================================================================
+
+1.  **Architecture & Decoupling**: Implemented the Repository Pattern, abstracting data access via `IClienteRepositorio`, `IComputadorRepositorio`, and `ILocacaoRepositorio` interfaces. Achieved loose coupling in `AppService` through constructor-based Dependency Injection.
+2.  **Type Safety**: Introduced `StatusComputador`, `TierComputador`, and `StatusLocacao` enums to enforce type safety and eliminate string literals.
+3.  **Data Persistence**: Configured SQLite with explicit Foreign Key constraints. Centralized database connection management in `DatabaseConnection` and automated schema initialization via `SchemaManager`. Refactored Data Access Objects (DAOs) to propagate `RuntimeException` for unhandled `SQLException`s, enhancing error traceability.
+4.  **Business Rules Enforcement**: Implemented domain-specific validations, including preventing concurrent active rentals for a single client, enforcing referential integrity during entity deletion, and dynamic calculation of rental charges based on `TierComputador` multipliers.
+5.  **Computer Management**: Developed comprehensive CRUD operations for `Computador` entities, exposed through `AppService` and integrated into `AppController`'s user interface.
+6.  **Testing Infrastructure**: Configured JUnit 5 within `pom.xml` to establish a foundation for unit and integration testing.
+7.  **CLI Enhancements**: Implemented graceful application shutdown via `IView.encerrar()` and integrated basic exception handling within `AppController` for user feedback.
+
+================================================================================
+  UPDATE: 2026-05-20
+  Subject: Codebase Refinement, Internationalization, and System Stability Enhancements
+================================================================================
+
+1.  **Documentation & Localization**:
+    *   Achieved 100% English localization for all Javadoc comments, inline code comments, and the `TODO_lan_house.txt` project management file.
+    *   Enforced consistent Javadoc formatting and content standards across all architectural layers (Model, Service, Repository, UI).
+2.  **Code Refinement & OOP Adherence**:
+    *   Refactored Model classes (`Cliente`, `Computador`, `Locacao`) to conform to standard Object-Oriented Programming (OOP) principles, organizing members as: fields, constructors, getters, setters, and `toString()` methods.
+    *   Implemented previously stubbed setter methods (`setNumero`, `setTier`) in `Computador.java`.
+    *   Centralized the `getLastInsertId` database utility function into `DatabaseUtils`, eliminating code duplication across multiple DAOs.
+3.  **System Robustness & Defect Resolution**:
+    *   **AppService Layer**: Implemented stringent input validation mechanisms (e.g., non-empty string checks, positive numeric constraints) and introduced a unique constraint validation for `Computador` numbers during update operations.
+    *   **AppController Layer**: Addressed critical compilation errors stemming from duplicate variable declarations and corrected return type mismatches in helper methods (`selecionarCliente`, `selecionarComputadorLivre`). Enhanced error propagation from the service layer to the UI for improved user feedback.
+    *   **Build & Runtime Infrastructure**: Integrated `slf4j-simple` dependency to resolve `SLF4J` binding warnings. Configured `exec-maven-plugin` with `--enable-native-access=ALL-UNNAMED` to suppress Java 21+ JVM warnings related to `sqlite-jdbc` native library access.
+
+SUGGESTED NEXT STEPS:
+- Implement manual transaction management in `AppService` (Atomicity for multi-step operations like `iniciarLocacao`).
+- Implement period-based filtering for revenue reports (TODO 7.2).
+- Write comprehensive unit and integration tests (TODO Block 6).
+
+================================================================================
+LOG UPDATED BY GEMINI CODE ASSIST - ITERATIVE MODE
+================================================================================

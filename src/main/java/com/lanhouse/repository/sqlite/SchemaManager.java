@@ -4,11 +4,21 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+/**
+ * Utility class responsible for initializing the database schema.
+ * Ensures that all required tables exist before the application starts performing operations.
+ */
 public final class SchemaManager {
     private static volatile boolean initialized = false;
 
     private SchemaManager() {}
 
+    /**
+     * Checks if the schema is initialized and creates the tables if they do not exist.
+     *
+     * @param conn The database connection used to execute the creation scripts.
+     * @throws SQLException If an error occurs during SQL execution.
+     */
     static void ensureSchema(Connection conn) throws SQLException {
         if (initialized) return;
         synchronized (SchemaManager.class) {

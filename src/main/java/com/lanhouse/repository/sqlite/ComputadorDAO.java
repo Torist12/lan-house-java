@@ -1,8 +1,5 @@
 package com.lanhouse.repository.sqlite;
 
-// If a separate DatabaseConnection class is not available on the classpath,
-// provide a simple package-private fallback for SQLite connections.
-// This keeps changes local to this file as requested.
 import com.lanhouse.model.Computador;
 import com.lanhouse.model.StatusComputador;
 import com.lanhouse.model.TierComputador;
@@ -11,6 +8,10 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * SQLite implementation of the {@link IComputadorRepositorio} interface.
+ * Handles persistence logic for computer records in the local database.
+ */
 public class ComputadorDAO implements IComputadorRepositorio {
     private static final String INSERT = "INSERT INTO computadores (numero, status, tier, preco_hora) VALUES (?, ?, ?, ?)";
     private static final String SELECT_ALL = "SELECT id, numero, status, tier, preco_hora FROM computadores";
@@ -21,6 +22,13 @@ public class ComputadorDAO implements IComputadorRepositorio {
     private static final String UPDATE_STATUS = "UPDATE computadores SET status = ? WHERE id = ?";
     private static final String DELETE = "DELETE FROM computadores WHERE id = ?";
 
+    /**
+     * Saves a new computer to the database.
+     *
+     * @param computador The computer entity to persist.
+     * @return The auto-generated ID of the new record, or -1 if insertion failed.
+     * @throws RuntimeException if a database access error occurs.
+     */
     public int salvar(Computador computador) {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(INSERT)) {
@@ -31,7 +39,7 @@ public class ComputadorDAO implements IComputadorRepositorio {
             pstmt.setDouble(4, computador.getPrecoHora());
             
             if (pstmt.executeUpdate() > 0) {
-                return getLastInsertId(conn);
+                return DatabaseUtils.getLastInsertId(conn);
             }
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao salvar computador no banco: " + e.getMessage(), e);
@@ -39,6 +47,12 @@ public class ComputadorDAO implements IComputadorRepositorio {
         return -1;
     }
 
+    /**
+     * Retrieves all computer records from the database.
+     *
+     * @return A list of all {@link Computador} objects found.
+     * @throws RuntimeException if a database access error occurs.
+     */
     public List<Computador> listarTodos() {
         List<Computador> computadores = new ArrayList<>();
         try (Connection conn = DatabaseConnection.getConnection();
@@ -54,6 +68,13 @@ public class ComputadorDAO implements IComputadorRepositorio {
         return computadores;
     }
 
+    /**
+     * Searches for a computer by its database ID.
+     *
+     * @param id The unique identifier of the computer.
+     * @return The {@link Computador} instance if found, or null otherwise.
+     * @throws RuntimeException if a database access error occurs.
+     */
     public Computador buscarPorId(int id) {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(SELECT_BY_ID)) {
@@ -70,6 +91,13 @@ public class ComputadorDAO implements IComputadorRepositorio {
         return null;
     }
 
+    /**
+     * Searches for a computer by its logical machine number.
+     *
+     * @param numero The machine number assigned to the computer.
+     * @return The {@link Computador} instance if found, or null otherwise.
+     * @throws RuntimeException if a database access error occurs.
+     */
     public Computador buscarPorNumero(int numero) {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(SELECT_BY_NUMERO)) {
@@ -86,6 +114,12 @@ public class ComputadorDAO implements IComputadorRepositorio {
         return null;
     }
 
+    /**
+     * Lists all computers currently marked as available (LIVRE).
+     *
+     * @return A list of available {@link Computador} objects.
+     * @throws RuntimeException if a database access error occurs.
+     */
     public List<Computador> listarLivres() {
         List<Computador> computadores = new ArrayList<>();
         try (Connection conn = DatabaseConnection.getConnection();
@@ -101,6 +135,13 @@ public class ComputadorDAO implements IComputadorRepositorio {
         return computadores;
     }
 
+    /**
+     * Updates an existing computer's data.
+     *
+     * @param computador The computer object containing updated information.
+     * @return true if the update was successful, false otherwise.
+     * @throws RuntimeException if a database access error occurs.
+     */
     public boolean atualizar(Computador computador) {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(UPDATE)) {
@@ -116,6 +157,14 @@ public class ComputadorDAO implements IComputadorRepositorio {
         }
     }
 
+    /**
+     * Updates only the status of a specific computer.
+     *
+     * @param id The ID of the computer to update.
+     * @param novoStatus The new status to apply.
+     * @return true if the status was updated, false otherwise.
+     * @throws RuntimeException if a database access error occurs.
+     */
     public boolean atualizarStatus(int id, StatusComputador novoStatus) {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(UPDATE_STATUS)) {
@@ -128,6 +177,13 @@ public class ComputadorDAO implements IComputadorRepositorio {
         }
     }
 
+    /**
+     * Removes a computer record from the database.
+     *
+     * @param id The ID of the computer to delete.
+     * @return true if the record was deleted, false otherwise.
+     * @throws RuntimeException if a database access error occurs.
+     */
     public boolean deletar(int id) {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(DELETE)) {
@@ -139,16 +195,13 @@ public class ComputadorDAO implements IComputadorRepositorio {
         }
     }
 
-    private int getLastInsertId(Connection conn) throws SQLException {
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        }
-        return -1;
-    }
-
+    /**
+     * Maps a database row to a Computador object.
+     *
+     * @param rs The result set at the current cursor position.
+     * @return A populated Computador instance.
+     * @throws SQLException If column mapping fails.
+     */
     private Computador mapearResultSet(ResultSet rs) throws SQLException {
         return new Computador(
             rs.getInt("id"),
@@ -159,7 +212,3 @@ public class ComputadorDAO implements IComputadorRepositorio {
         );
     }
 }
-
-// Fallback DatabaseConnection implementation (package-private).
-// Adjust the JDBC URL as needed for your environment.
-// DatabaseConnection is provided in DatabaseConnection.java in this package.
