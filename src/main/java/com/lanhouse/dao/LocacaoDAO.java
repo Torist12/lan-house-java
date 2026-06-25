@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LocacaoDAO {
-    private static final String INSERT = "INSERT INTO locacoes (cliente_id, computador_id, inicio, status) VALUES (?, ?, ?, ?)";
+    private static final String INSERT = "INSERT INTO locacoes (cliente_id, computador_id, inicio, valor_total, status) VALUES (?, ?, ?, ?, ?)";
     private static final String SELECT_ALL = "SELECT id, cliente_id, computador_id, inicio, fim, valor_total, status FROM locacoes";
     private static final String SELECT_ATIVAS = SELECT_ALL + " WHERE status = 'ativa'";
     private static final String SELECT_BY_CLIENTE = SELECT_ALL + " WHERE cliente_id = ?";
@@ -21,7 +21,8 @@ public class LocacaoDAO {
             pstmt.setInt(1, locacao.getClienteId());
             pstmt.setInt(2, locacao.getComputadorId());
             pstmt.setTimestamp(3, Timestamp.valueOf(locacao.getInicio()));
-            pstmt.setString(4, locacao.getStatus());
+            pstmt.setDouble(4, locacao.getValorTotal());
+            pstmt.setString(5, locacao.getStatus());
             
             if (pstmt.executeUpdate() > 0) {
                 // Recuperar o último ID inserido
