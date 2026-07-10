@@ -5,7 +5,7 @@
             "type": "java",
             "name": "Executar Lan House",
             "request": "launch",
-            "mainClass": "Main",
+            "mainClass": "com.lanhouse.Main",
             "projectName": "lanhousesystem",
             "args": "",
             "console": "integratedTerminal"

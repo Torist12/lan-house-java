@@ -74,6 +74,13 @@ public class AppService {
         return computadorDAO.buscarPorNumero(numero);
     }
 
+    public boolean atualizarStatusComputador(int id, String status) {
+        if (status == null || status.isBlank()) {
+            return false;
+        }
+        return computadorDAO.atualizarStatus(id, status.trim().toLowerCase());
+    }
+
     // ===== OPERAÇÕES COM LOCAÇÃO =====
     
     /**

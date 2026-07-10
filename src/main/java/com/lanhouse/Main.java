@@ -6,14 +6,40 @@ import com.lanhouse.dao.ComputadorDAO;
 import com.lanhouse.dao.DatabaseConnection;
 import com.lanhouse.dao.LocacaoDAO;
 import com.lanhouse.service.AppService;
+import com.lanhouse.service.AuthService;
 import com.lanhouse.service.CalculoValorService;
 import com.lanhouse.ui.CliView;
+import com.lanhouse.ui.LanHouseJavaFxView;
+import javafx.application.Application;
+import javafx.stage.Stage;
 
-public class Main {
+public class Main extends Application {
     public static void main(String[] args) {
+        if (args.length > 0 && "--cli".equalsIgnoreCase(args[0])) {
+            executarCli();
+            return;
+        }
+
+        launch(args);
+    }
+
+    @Override
+    public void start(Stage stage) {
+        DatabaseConnection.criarTabelas();
+
+        var computadorDAO = new ComputadorDAO();
+        var clienteDAO = new ClienteDAO();
+        var locacaoDAO = new LocacaoDAO();
+        var calculoService = new CalculoValorService();
+
+        var service = new AppService(computadorDAO, clienteDAO, locacaoDAO, calculoService);
+        var authService = new AuthService();
+        new LanHouseJavaFxView(stage, service, authService);
+    }
+
+    private static void executarCli() {
         System.out.println("=== SISTEMA LAN HOUSE ===\n");
 
-        // Inicializar banco de dados
         DatabaseConnection.criarTabelas();
 
         var computadorDAO = new ComputadorDAO();
