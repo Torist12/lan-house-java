@@ -3,6 +3,7 @@ package com.lanhouse.service;
 import com.lanhouse.dao.*;
 import com.lanhouse.model.*;
 import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -13,14 +14,17 @@ public class AppService {
     private final ComputadorDAO computadorDAO;
     private final ClienteDAO clienteDAO;
     private final LocacaoDAO locacaoDAO;
+    private final FuncionarioDAO funcionarioDAO;
     private final CalculoValorService calculoService;
 
-    public AppService(ComputadorDAO computadorDAO, ClienteDAO clienteDAO, 
-                      LocacaoDAO locacaoDAO, CalculoValorService calculoService) {
+    public AppService(ComputadorDAO computadorDAO, ClienteDAO clienteDAO,
+                      LocacaoDAO locacaoDAO, CalculoValorService calculoService,
+                      FuncionarioDAO funcionarioDAO) {
         this.computadorDAO = computadorDAO;
         this.clienteDAO = clienteDAO;
         this.locacaoDAO = locacaoDAO;
         this.calculoService = calculoService;
+        this.funcionarioDAO = funcionarioDAO;
     }
 
     // ===== OPERAÇÕES COM CLIENTE =====
@@ -54,6 +58,68 @@ public class AppService {
 
     public boolean deletarCliente(int id) {
         return clienteDAO.deletar(id);
+    }
+
+    // ===== OPERAÇÕES COM FUNCIONÁRIO =====
+
+    public int criarFuncionario(String usuario, String senha) {
+        if (usuario == null || senha == null) {
+            return -1;
+        }
+
+        String usuarioNormalizado = usuario.trim().toLowerCase();
+        String senhaNormalizada = senha.trim();
+        Funcionario funcionario = new Funcionario(usuarioNormalizado, senhaNormalizada);
+        return funcionarioDAO.salvar(funcionario);
+    }
+
+    public List<Funcionario> listarFuncionarios() {
+        return funcionarioDAO.listarTodos();
+    }
+
+    public Funcionario buscarFuncionarioId(int id) {
+        return funcionarioDAO.buscarPorId(id);
+    }
+
+    public boolean atualizarFuncionario(int id, String usuario, String senha) {
+        Funcionario funcionario = funcionarioDAO.buscarPorId(id);
+        if (funcionario != null) {
+            if (usuario != null) {
+                funcionario.setUsuario(usuario.trim().toLowerCase());
+            }
+            if (senha != null && !senha.trim().isEmpty()) {
+                funcionario.setSenha(senha.trim());
+            }
+            return funcionarioDAO.atualizar(funcionario);
+        }
+        return false;
+    }
+
+    public boolean deletarFuncionario(int id) {
+        return funcionarioDAO.deletar(id);
+    }
+
+    public int contarComputadoresStatus(String status) {
+        return (int) listarComputadores().stream()
+                .filter(pc -> status.equalsIgnoreCase(pc.getStatus()))
+                .count();
+    }
+
+    public double totalFaturamento() {
+        return listarTodasLocacoes().stream()
+                .mapToDouble(Locacao::getValorTotal)
+                .sum();
+    }
+
+    public double totalHorasUso() {
+        return listarTodasLocacoes().stream()
+                .mapToDouble(locacao -> {
+                    if (locacao.getFim() == null) {
+                        return 0.0;
+                    }
+                    return Duration.between(locacao.getInicio(), locacao.getFim()).toMinutes() / 60.0;
+                })
+                .sum();
     }
 
     // ===== OPERAÇÕES COM COMPUTADOR =====

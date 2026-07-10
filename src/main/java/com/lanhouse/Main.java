@@ -4,6 +4,7 @@ import com.lanhouse.controller.AppController;
 import com.lanhouse.dao.ClienteDAO;
 import com.lanhouse.dao.ComputadorDAO;
 import com.lanhouse.dao.DatabaseConnection;
+import com.lanhouse.dao.FuncionarioDAO;
 import com.lanhouse.dao.LocacaoDAO;
 import com.lanhouse.service.AppService;
 import com.lanhouse.service.AuthService;
@@ -30,10 +31,11 @@ public class Main extends Application {
         var computadorDAO = new ComputadorDAO();
         var clienteDAO = new ClienteDAO();
         var locacaoDAO = new LocacaoDAO();
+        var funcionarioDAO = new FuncionarioDAO();
         var calculoService = new CalculoValorService();
 
-        var service = new AppService(computadorDAO, clienteDAO, locacaoDAO, calculoService);
-        var authService = new AuthService();
+        var service = new AppService(computadorDAO, clienteDAO, locacaoDAO, calculoService, funcionarioDAO);
+        var authService = new AuthService(funcionarioDAO);
         new LanHouseJavaFxView(stage, service, authService);
     }
 
@@ -45,9 +47,10 @@ public class Main extends Application {
         var computadorDAO = new ComputadorDAO();
         var clienteDAO = new ClienteDAO();
         var locacaoDAO = new LocacaoDAO();
+        var funcionarioDAO = new FuncionarioDAO();
         var calculoService = new CalculoValorService();
 
-        var service = new AppService(computadorDAO, clienteDAO, locacaoDAO, calculoService);
+        var service = new AppService(computadorDAO, clienteDAO, locacaoDAO, calculoService, funcionarioDAO);
         var view = new CliView();
         var controller = new AppController(service, view);
 

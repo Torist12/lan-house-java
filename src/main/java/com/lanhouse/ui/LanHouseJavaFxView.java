@@ -2,6 +2,7 @@ package com.lanhouse.ui;
 
 import com.lanhouse.model.Cliente;
 import com.lanhouse.model.Computador;
+import com.lanhouse.model.Funcionario;
 import com.lanhouse.model.Locacao;
 import com.lanhouse.service.AppService;
 import com.lanhouse.service.AuthService;
@@ -11,6 +12,11 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -32,9 +38,9 @@ public class LanHouseJavaFxView {
     private final Stage stage;
     private final AppService service;
     private final AuthService authService;
-    private final BorderPane root = new BorderPane();
-    private final VBox contentArea = new VBox(16);
-    private final Label statusLabel = new Label("Bem-vindo ao sistema");
+    private BorderPane root;
+    private VBox contentArea;
+    private Label statusLabel;
 
     public LanHouseJavaFxView(Stage stage, AppService service, AuthService authService) {
         this.stage = stage;
@@ -70,7 +76,7 @@ public class LanHouseJavaFxView {
             if (authService.autenticar(usuarioField.getText(), senhaField.getText())) {
                 montarTelaPrincipal();
             } else {
-                mensagem.setText("Usuário ou senha inválidos. Use adm / adm.");
+                mensagem.setText("Usuário ou senha inválidos.");
             }
         });
 
@@ -84,6 +90,10 @@ public class LanHouseJavaFxView {
     }
 
     private void montarTelaPrincipal() {
+        root = new BorderPane();
+        contentArea = new VBox(16);
+        statusLabel = new Label("Bem-vindo ao sistema");
+
         root.setStyle("-fx-background-color: #f8fafc;");
 
         HBox topBar = new HBox();
@@ -113,8 +123,13 @@ public class LanHouseJavaFxView {
         Button computadoresButton = criarBotaoMenu("Computadores", () -> carregarPainelComputadores());
         Button locacoesButton = criarBotaoMenu("Locações", () -> carregarPainelLocacoes());
         Button relatoriosButton = criarBotaoMenu("Relatórios", () -> carregarPainelRelatorios());
-
-        menu.getChildren().addAll(clientesButton, computadoresButton, locacoesButton, relatoriosButton);
+        Button estatisticasButton = criarBotaoMenu("Estatísticas", () -> carregarPainelEstatisticas());
+        if (authService.isAdminAtual()) {
+            Button funcionariosButton = criarBotaoMenu("Funcionários", () -> carregarPainelFuncionarios());
+            menu.getChildren().addAll(clientesButton, computadoresButton, locacoesButton, relatoriosButton, estatisticasButton, funcionariosButton);
+        } else {
+            menu.getChildren().addAll(clientesButton, computadoresButton, locacoesButton, relatoriosButton, estatisticasButton);
+        }
         root.setLeft(menu);
 
         contentArea.setPadding(new Insets(16));
@@ -161,6 +176,21 @@ public class LanHouseJavaFxView {
         contentArea.getChildren().setAll(criarPainelRelatorios());
     }
 
+    private void carregarPainelEstatisticas() {
+        statusLabel.setText("Estatísticas de uso e lucro");
+        contentArea.getChildren().setAll(criarPainelEstatisticas());
+    }
+
+    private void carregarPainelFuncionarios() {
+        if (!authService.isAdminAtual()) {
+            mostrarAlerta("Apenas o administrador pode acessar esta área.");
+            carregarPainelClientes();
+            return;
+        }
+        statusLabel.setText("Gestão de funcionários");
+        contentArea.getChildren().setAll(criarPainelFuncionarios());
+    }
+
     private Node criarPainelClientes() {
         VBox painel = new VBox(12);
 
@@ -170,6 +200,8 @@ public class LanHouseJavaFxView {
         GridPane form = new GridPane();
         form.setHgap(10);
         form.setVgap(8);
+        form.setPadding(new Insets(12));
+        form.setStyle("-fx-background-color: white; -fx-background-radius: 12px; -fx-border-color: #e2e8f0; -fx-border-width: 1px;");
 
         TextField nomeField = new TextField();
         nomeField.setPromptText("Nome");
@@ -208,6 +240,8 @@ public class LanHouseJavaFxView {
 
         TableView<Cliente> table = new TableView<>();
         table.setPrefHeight(280);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        table.setStyle("-fx-background-color: white; -fx-border-color: #e2e8f0;");
 
         TableColumn<Cliente, Integer> idCol = new TableColumn<>("ID");
         idCol.setCellValueFactory(cd -> new javafx.beans.property.SimpleIntegerProperty(cd.getValue().getId()).asObject());
@@ -226,13 +260,16 @@ public class LanHouseJavaFxView {
 
         HBox botoes = new HBox(10);
         Button atualizarButton = new Button("Atualizar selecionado");
+        atualizarButton.setStyle("-fx-background-color: #f59e0b; -fx-text-fill: white;");
         atualizarButton.setOnAction(e -> {
             Cliente selecionado = table.getSelectionModel().getSelectedItem();
             if (selecionado == null) {
                 mostrarAlerta("Selecione um cliente.");
                 return;
             }
-            boolean ok = service.atualizarCliente(selecionado.getId(), nomeField.getText().trim().isEmpty() ? selecionado.getNome() : nomeField.getText().trim(), telefoneField.getText().trim().isEmpty() ? selecionado.getTelefone() : telefoneField.getText().trim());
+            String nomeAtualizado = nomeField.getText().trim().isEmpty() ? selecionado.getNome() : nomeField.getText().trim();
+            String telefoneAtualizado = telefoneField.getText().trim().isEmpty() ? selecionado.getTelefone() : telefoneField.getText().trim();
+            boolean ok = service.atualizarCliente(selecionado.getId(), nomeAtualizado, telefoneAtualizado);
             if (ok) {
                 limparCampos(nomeField, documentoField, telefoneField);
                 carregarPainelClientes();
@@ -258,7 +295,11 @@ public class LanHouseJavaFxView {
             }
         });
 
-        botoes.getChildren().addAll(atualizarButton, excluirButton);
+        Button novoButton = new Button("Novo cliente");
+        novoButton.setStyle("-fx-background-color: #10b981; -fx-text-fill: white;");
+        novoButton.setOnAction(e -> limparCampos(nomeField, documentoField, telefoneField));
+
+        botoes.getChildren().addAll(atualizarButton, excluirButton, novoButton);
 
         table.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
@@ -272,6 +313,156 @@ public class LanHouseJavaFxView {
         return painel;
     }
 
+    private Node criarPainelFuncionarios() {
+        VBox painel = new VBox(12);
+        painel.setStyle("-fx-background-color: #f8fafc;");
+
+        Label titulo = new Label("Funcionários");
+        titulo.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+
+        GridPane form = new GridPane();
+        form.setHgap(10);
+        form.setVgap(8);
+        form.setPadding(new Insets(12));
+        form.setStyle("-fx-background-color: white; -fx-background-radius: 12px; -fx-border-color: #e2e8f0; -fx-border-width: 1px;");
+
+        TextField usuarioField = new TextField();
+        usuarioField.setPromptText("Usuário");
+        TextField senhaField = new TextField();
+        senhaField.setPromptText("Senha");
+        ComboBox<String> tipoAcessoBox = new ComboBox<>();
+        tipoAcessoBox.getItems().addAll("Funcionário", "Administrador");
+        tipoAcessoBox.setValue("Funcionário");
+
+        Button salvarButton = new Button("Salvar funcionário");
+        salvarButton.setStyle("-fx-background-color: #2563eb; -fx-text-fill: white;");
+        salvarButton.setOnAction(e -> {
+            String usuario = usuarioField.getText().trim();
+            String senha = senhaField.getText().trim();
+            if (usuario.isEmpty() || senha.isEmpty()) {
+                mostrarAlerta("Preencha usuário e senha.");
+                return;
+            }
+            int id = service.criarFuncionario(usuario, senha);
+            if (id > 0) {
+                limparCampos(usuarioField, senhaField);
+                tipoAcessoBox.setValue("Funcionário");
+                carregarPainelFuncionarios();
+                mostrarMensagem("Funcionário cadastrado com sucesso.");
+            } else {
+                mostrarAlerta("Não foi possível salvar o funcionário.");
+            }
+        });
+
+        form.add(new Label("Usuário:"), 0, 0);
+        form.add(usuarioField, 1, 0);
+        form.add(new Label("Senha:"), 0, 1);
+        form.add(senhaField, 1, 1);
+        form.add(new Label("Tipo:"), 0, 2);
+        form.add(tipoAcessoBox, 1, 2);
+        form.add(salvarButton, 1, 3);
+
+        TableView<Funcionario> table = new TableView<>();
+        table.setPrefHeight(320);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        TableColumn<Funcionario, Integer> idCol = new TableColumn<>("ID");
+        idCol.setCellValueFactory(cd -> new javafx.beans.property.SimpleIntegerProperty(cd.getValue().getId()).asObject());
+        TableColumn<Funcionario, String> usuarioCol = new TableColumn<>("Usuário");
+        usuarioCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("usuario"));
+
+        TableColumn<Funcionario, String> senhaCol = new TableColumn<>("Senha");
+        senhaCol.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getSenha()));
+
+        table.getColumns().setAll(idCol, usuarioCol, senhaCol);
+        table.setItems(FXCollections.observableArrayList(service.listarFuncionarios()));
+
+        HBox botoesFunc = new HBox(10);
+        Button atualizarButton = new Button("Atualizar selecionado");
+        atualizarButton.setStyle("-fx-background-color: #f59e0b; -fx-text-fill: white;");
+        atualizarButton.setOnAction(e -> {
+            Funcionario selecionado = table.getSelectionModel().getSelectedItem();
+            if (selecionado == null) {
+                mostrarAlerta("Selecione um funcionário.");
+                return;
+            }
+            String usuarioAtualizado = usuarioField.getText().trim().isEmpty() ? selecionado.getUsuario() : usuarioField.getText().trim();
+            String senhaAtualizada = senhaField.getText().trim().isEmpty() ? selecionado.getSenha() : senhaField.getText().trim();
+            if (service.atualizarFuncionario(selecionado.getId(), usuarioAtualizado, senhaAtualizada)) {
+                limparCampos(usuarioField, senhaField);
+                tipoAcessoBox.setValue("Funcionário");
+                carregarPainelFuncionarios();
+                mostrarMensagem("Funcionário atualizado com sucesso.");
+            } else {
+                mostrarAlerta("Erro ao atualizar funcionário.");
+            }
+        });
+
+        Button excluirButton = new Button("Excluir selecionado");
+        excluirButton.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white;");
+        excluirButton.setOnAction(e -> {
+            Funcionario selecionado = table.getSelectionModel().getSelectedItem();
+            if (selecionado == null) {
+                mostrarAlerta("Selecione um funcionário.");
+                return;
+            }
+            if (service.deletarFuncionario(selecionado.getId())) {
+                carregarPainelFuncionarios();
+                mostrarMensagem("Funcionário removido com sucesso.");
+            } else {
+                mostrarAlerta("Não foi possível remover o funcionário.");
+            }
+        });
+
+        botoesFunc.getChildren().addAll(atualizarButton, excluirButton);
+
+        table.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                usuarioField.setText(newSelection.getUsuario());
+                senhaField.clear();
+                tipoAcessoBox.setValue("Funcionário");
+            }
+        });
+
+        painel.getChildren().addAll(titulo, form, botoesFunc, table);
+        return painel;
+    }
+
+    private Node criarPainelEstatisticas() {
+        VBox painel = new VBox(12);
+        painel.setStyle("-fx-background-color: #f8fafc;");
+
+        Label titulo = new Label("Estatísticas");
+        titulo.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+
+        PieChart statusChart = new PieChart();
+        statusChart.setTitle("Status dos computadores");
+        statusChart.getData().addAll(
+                new PieChart.Data("Livres", service.contarComputadoresStatus("livre")),
+                new PieChart.Data("Ocupados", service.contarComputadoresStatus("ocupado"))
+        );
+
+        CategoryAxis xAxis = new CategoryAxis();
+        xAxis.setLabel("Métrica");
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Valor");
+        BarChart<String, Number> usageChart = new BarChart<>(xAxis, yAxis);
+        usageChart.setTitle("Uso e faturamento total");
+
+        XYChart.Series<String, Number> serie = new XYChart.Series<>();
+        serie.setName("Total");
+        serie.getData().add(new XYChart.Data<>("Horas de uso", service.totalHorasUso()));
+        serie.getData().add(new XYChart.Data<>("Faturamento", service.totalFaturamento()));
+        usageChart.getData().add(serie);
+
+        HBox charts = new HBox(12);
+        charts.getChildren().addAll(statusChart, usageChart);
+        charts.setPrefHeight(360);
+
+        painel.getChildren().addAll(titulo, charts);
+        return painel;
+    }
+
     private Node criarPainelComputadores() {
         VBox painel = new VBox(12);
         Label titulo = new Label("Computadores");
@@ -279,6 +470,8 @@ public class LanHouseJavaFxView {
 
         TableView<Computador> table = new TableView<>();
         table.setPrefHeight(320);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        table.setStyle("-fx-background-color: white; -fx-border-color: #e2e8f0;");
 
         TableColumn<Computador, Integer> idCol = new TableColumn<>("ID");
         idCol.setCellValueFactory(cd -> new javafx.beans.property.SimpleIntegerProperty(cd.getValue().getId()).asObject());
@@ -297,11 +490,15 @@ public class LanHouseJavaFxView {
         GridPane form = new GridPane();
         form.setHgap(10);
         form.setVgap(8);
+        form.setPadding(new Insets(12));
+        form.setStyle("-fx-background-color: white; -fx-background-radius: 12px; -fx-border-color: #e2e8f0; -fx-border-width: 1px;");
+
         TextField computadorIdField = new TextField();
         computadorIdField.setPromptText("ID do computador");
         ComboBox<String> statusBox = new ComboBox<>(FXCollections.observableArrayList("livre", "ocupado"));
         statusBox.setValue("livre");
         Button atualizarStatusButton = new Button("Atualizar status");
+        atualizarStatusButton.setStyle("-fx-background-color: #2563eb; -fx-text-fill: white;");
         atualizarStatusButton.setOnAction(e -> {
             try {
                 int id = Integer.parseInt(computadorIdField.getText().trim());

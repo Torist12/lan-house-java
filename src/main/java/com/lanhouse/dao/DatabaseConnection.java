@@ -1,5 +1,6 @@
 package com.lanhouse.dao;
 
+import com.lanhouse.util.PasswordUtils;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -46,12 +47,23 @@ public class DatabaseConnection {
             )
         """;
 
+        String sqlFuncionarios = """
+            CREATE TABLE IF NOT EXISTS funcionarios (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                usuario TEXT NOT NULL UNIQUE,
+                senha TEXT NOT NULL
+            )
+        """;
+
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
 
             stmt.execute(sqlComputadores);
             stmt.execute(sqlClientes);
             stmt.execute(sqlLocacoes);
+            stmt.execute(sqlFuncionarios);
+            String admHash = PasswordUtils.hashPassword("adm");
+            stmt.execute("INSERT OR IGNORE INTO funcionarios (usuario, senha) VALUES ('adm', '" + admHash + "')");
             
             // Inserir 5 computadores padrão com tier e preço
             String sqlInsert = "INSERT OR IGNORE INTO computadores (numero, tier, preco_hora) VALUES (?, ?, ?)";
