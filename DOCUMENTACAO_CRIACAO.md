@@ -1,6 +1,6 @@
 # Documentação de criação e evolução do Lan House Java
 
-Este documento registra a evolução do projeto desde a sua implementação inicial até a versão atual 1.6, com foco no contexto de criação, nas principais mudanças e no funcionamento geral do sistema.
+Este documento registra a evolução do projeto desde a sua implementação inicial até a versão atual 1.7, com foco no contexto de criação, nas principais mudanças e no funcionamento geral do sistema.
 
 ## 1. Visão geral do projeto
 
@@ -62,7 +62,8 @@ Com o avanço do projeto, foram feitas melhorias importantes para tornar o uso m
 - correção de problemas no salvamento de funcionários;
 - correção de falhas no login;
 - melhoria no tratamento de senhas;
-- restrição de acesso a áreas sensíveis para usuários sem permissão.
+- restrição de acesso a áreas sensíveis para usuários sem permissão;
+- inclusão de geração de instaladores nativos para facilitar a distribuição.
 
 ## 4. Histórico de versões e mudanças
 
@@ -100,6 +101,12 @@ A seguir está um resumo do que foi adicionado e melhorado em cada versão do pr
 - Melhorias no comportamento após erro de senha.
 - Aumento da robustez no fluxo de autenticação.
 
+### Versão 1.7
+- Adicionado suporte à geração de instaladores nativos com `jpackage`.
+- Inclusão do script `package.sh` para criar a imagem do aplicativo Linux e o pacote `.deb` automaticamente.
+- Documentação atualizada com instruções de criação de instalador.
+- O `package.sh` gerou o instalador `dist/linux/lanhousesystem_1.0.0_amd64.deb`.
+
 ### Versão 1.6
 - Correção no cadastro de funcionários.
 - Correção no login para permitir nova tentativa com a senha correta.
@@ -108,9 +115,9 @@ A seguir está um resumo do que foi adicionado e melhorado em cada versão do pr
 - A área de funcionários passou a ficar restrita apenas ao administrador.
 - Adição de um seletor de tipo de acesso: Funcionário ou Administrador.
 
-## 5. Principais mudanças da versão 1.6
+## 5. Principais mudanças da versão 1.7
 
-A versão 1.6 representa uma evolução importante no sistema, com foco em estabilidade, segurança e organização de permissões.
+A versão 1.7 representa uma evolução importante no sistema, com foco em estabilidade, distribuição e documentação de instalação.
 
 ### 4.1 Correções no cadastro e login
 
